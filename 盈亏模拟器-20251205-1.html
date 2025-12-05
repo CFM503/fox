@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盈亏模拟器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.staticfile.org/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        /* Compact Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            display: block;
+            width: 100%;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            cursor: pointer;
+            margin-top: -4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* Number Input Styling */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Scrollbar for inputs area if needed */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 flex-shrink-0 z-50">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-12 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-sky-500 text-white p-1 rounded-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-base font-bold text-slate-800 tracking-tight">盈亏模拟器</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="saveConfig()"
+                        class="bg-white text-sky-600 border border-sky-200 hover:bg-sky-50 px-2 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        保存
+                    </button>
+                    <button onclick="document.getElementById('fileInput').click()"
+                        class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        导入
+                    </button>
+                    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadConfig(this)">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content: Flex layout for full height -->
+    <main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
+
+        <!-- Left Panel: Inputs (Scrollable) -->
+        <div
+            class="lg:w-[420px] flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto custom-scroll p-3 space-y-2 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+
+            <!-- Category 1: Residential -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-emerald-100 text-emerald-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                            </path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">居民用气 (Residential)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <!-- Vol -->
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">销气量 (万方)</span>
+                            <input type="number" id="resVolInput"
+                                class="text-right font-mono font-bold text-sky-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-sky-500 outline-none text-[10px]"
+                                value="2000">
+                        </div>
+                        <input type="range" min="0" max="999999" step="100" value="2000" id="resVolSlider"
+                            class="w-full block">
+                    </div>
+                    <!-- Sale Price -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">销价</span>
+                                <input type="number" id="resPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-emerald-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-emerald-500 outline-none text-[10px]"
+                                    value="3.50">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="3.50" id="resPriceSlider"
+                                class="w-full block">
+                        </div>
+                        <!-- Buy Price -->
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">购价</span>
+                                <input type="number" id="resBuyPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                    value="3.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="3.00" id="resBuyPriceSlider"
+                                class="w-full block">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 2: Industrial -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-blue-100 text-blue-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                            </path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">工业用气 (Industrial)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">销气量 (万方)</span>
+                            <input type="number" id="indVolInput"
+                                class="text-right font-mono font-bold text-sky-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-sky-500 outline-none text-[10px]"
+                                value="10000">
+                        </div>
+                        <input type="range" min="0" max="999999" step="500" value="10000" id="indVolSlider"
+                            class="w-full block">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">销价</span>
+                                <input type="number" id="indPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-emerald-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-emerald-500 outline-none text-[10px]"
+                                    value="6.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="6.00" id="indPriceSlider"
+                                class="w-full block">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">购价</span>
+                                <input type="number" id="indBuyPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                    value="3.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="3.00" id="indBuyPriceSlider"
+                                class="w-full block">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 3: Commercial -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-amber-100 text-amber-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">商业用气 (Commercial)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">销气量 (万方)</span>
+                            <input type="number" id="comVolInput"
+                                class="text-right font-mono font-bold text-sky-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-sky-500 outline-none text-[10px]"
+                                value="3000">
+                        </div>
+                        <input type="range" min="0" max="999999" step="100" value="3000" id="comVolSlider"
+                            class="w-full block">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">销价</span>
+                                <input type="number" id="comPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-emerald-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-emerald-500 outline-none text-[10px]"
+                                    value="6.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="6.00" id="comPriceSlider"
+                                class="w-full block">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">购价</span>
+                                <input type="number" id="comBuyPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                    value="3.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="3.00" id="comBuyPriceSlider"
+                                class="w-full block">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 4: Other -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-purple-100 text-purple-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">其他用气 (Other)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">销气量 (万方)</span>
+                            <input type="number" id="othVolInput"
+                                class="text-right font-mono font-bold text-sky-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-sky-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="999999" step="100" value="0" id="othVolSlider"
+                            class="w-full block">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">销价</span>
+                                <input type="number" id="othPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-emerald-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-emerald-500 outline-none text-[10px]"
+                                    value="4.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="4.00" id="othPriceSlider"
+                                class="w-full block">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-[10px] mb-1">
+                                <span class="text-slate-500">购价</span>
+                                <input type="number" id="othBuyPriceInput" step="0.01"
+                                    class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                    value="3.00">
+                            </div>
+                            <input type="range" min="0" max="10.0" step="0.01" value="3.00" id="othBuyPriceSlider"
+                                class="w-full block">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Business -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-orange-100 text-orange-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">安装业务 (Installation)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">居民安装毛利 (万元)</span>
+                            <input type="number" id="instResInput"
+                                class="text-right font-mono font-bold text-orange-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-orange-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="999999" step="10" value="0" id="instResSlider"
+                            class="w-full block">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">非居民安装毛利 (万元)</span>
+                            <input type="number" id="instNonResInput"
+                                class="text-right font-mono font-bold text-orange-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-orange-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="999999" step="10" value="0" id="instNonResSlider"
+                            class="w-full block">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Business -->
+            <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 card">
+                <div class="flex items-center gap-2 mb-2 border-b border-slate-200 pb-1">
+                    <span class="bg-teal-100 text-teal-600 p-0.5 rounded">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                            </path>
+                        </svg>
+                    </span>
+                    <h3 class="font-bold text-slate-700 text-xs">其他业务 (Other Business)</h3>
+                </div>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">其他业务毛利 (万元)</span>
+                            <input type="number" id="instOthInput"
+                                class="text-right font-mono font-bold text-teal-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-teal-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="999999" step="10" value="0" id="instOthSlider"
+                            class="w-full block">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Settings -->
+            <div class="bg-white rounded-lg border border-slate-200 p-2 card shadow-sm">
+                <h3 class="font-bold text-slate-700 text-xs mb-2">全局参数 (Global)</h3>
+                <div class="space-y-1.5">
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500">供销差率 (损耗 %)</span>
+                            <input type="number" id="gapRateInput" step="0.1"
+                                class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-12 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                value="0.0">
+                        </div>
+                        <input type="range" min="-20" max="20" step="0.1" value="0.0" id="gapRateSlider"
+                            class="w-full block">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500 cursor-help border-b border-dotted border-slate-300"
+                                title="制造费用+销售费用+管理费用">运营费用 (万元)</span>
+                            <input type="number" id="opexInput"
+                                class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="100000" step="100" value="0" id="opexSlider"
+                            class="w-full block">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-slate-500 cursor-help border-b border-dotted border-slate-300"
+                                title="财务费用+营业税金及附加+所得税费用">财务费用和税金 (万元)</span>
+                            <input type="number" id="finTaxInput"
+                                class="text-right font-mono font-bold text-rose-600 bg-white border border-slate-200 rounded px-1 w-16 focus:ring-1 focus:ring-rose-500 outline-none text-[10px]"
+                                value="0">
+                        </div>
+                        <input type="range" min="0" max="100000" step="100" value="0" id="finTaxSlider"
+                            class="w-full block">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Panel: Analysis (Flex Grow) -->
+        <div class="flex-grow flex flex-col bg-slate-50 p-4 lg:p-6 overflow-hidden">
+
+            <!-- KPI Cards Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 flex-shrink-0">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="text-xs text-slate-500 mb-1">总收入 (万元)</div>
+                    <div class="text-2xl font-bold text-emerald-600 truncate" id="totalRevenue">0</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="text-xs text-slate-500 mb-1">总成本 (万元)</div>
+                    <div class="text-2xl font-bold text-rose-600 truncate" id="totalCost">0</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="text-xs text-slate-500 mb-1">净利润 (万元)</div>
+                    <div class="text-2xl font-bold text-indigo-600 truncate" id="netProfit">0</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="text-xs text-slate-500 mb-1">综合毛利率</div>
+                    <div class="text-2xl font-bold text-amber-500 truncate" id="grossMargin">0%</div>
+                </div>
+            </div>
+
+            <!-- Chart Area (Fills remaining space) -->
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 flex-grow flex flex-col min-h-0">
+                <div class="flex justify-between items-center mb-2 flex-shrink-0">
+                    <h3 class="text-lg font-bold text-slate-800">盈亏平衡分析</h3>
+                    <div class="text-xs text-slate-400">点击图例隐藏曲线</div>
+                </div>
+
+                <div class="relative flex-grow w-full h-full min-h-[200px]">
+                    <canvas id="breakevenChart"></canvas>
+                </div>
+
+                <div
+                    class="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-600 flex-shrink-0">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <span class="font-bold text-slate-700">分析解读：</span>
+                            <span id="analysisText">正在计算...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- State ---
+        const state = {
+            resVol: 2000, resPrice: 3.50, resBuyPrice: 3.00,
+            indVol: 10000, indPrice: 6.00, indBuyPrice: 3.00,
+            comVol: 3000, comPrice: 6.00, comBuyPrice: 3.00,
+            othVol: 0, othPrice: 4.00, othBuyPrice: 3.00,
+            instRes: 0, instNonRes: 0, instOth: 0,
+            gapRate: 0.0,
+            opex: 0,
+            finTax: 0 // Financial Expenses & Taxes
+        };
+
+        // --- Elements ---
+        const ids = [
+            'resVol', 'resPrice', 'resBuyPrice',
+            'indVol', 'indPrice', 'indBuyPrice',
+            'comVol', 'comPrice', 'comBuyPrice',
+            'othVol', 'othPrice', 'othBuyPrice',
+            'instRes', 'instNonRes', 'instOth',
+            'gapRate', 'opex', 'finTax'
+        ];
+
+        const els = {
+            inputs: {},
+            sliders: {},
+            kpi: {
+                revenue: document.getElementById('totalRevenue'),
+                cost: document.getElementById('totalCost'),
+                profit: document.getElementById('netProfit'),
+                margin: document.getElementById('grossMargin'),
+            },
+            analysis: document.getElementById('analysisText')
+        };
+
+        // Init element references
+        ids.forEach(id => {
+            els.inputs[id] = document.getElementById(id + 'Input');
+            els.sliders[id] = document.getElementById(id + 'Slider');
+        });
+
+        let chartInstance = null;
+
+        // --- Logic ---
+        function updateCalculation(source) {
+            // Sync logic
+            if (source && source.target) {
+                const targetId = source.target.id;
+                const baseId = targetId.replace('Input', '').replace('Slider', '');
+                const isInput = targetId.includes('Input');
+
+                if (els.inputs[baseId] && els.sliders[baseId]) {
+                    if (isInput) {
+                        els.sliders[baseId].value = els.inputs[baseId].value;
+                        state[baseId] = parseFloat(els.inputs[baseId].value);
+                    } else {
+                        els.inputs[baseId].value = els.sliders[baseId].value;
+                        state[baseId] = parseFloat(els.sliders[baseId].value);
+                    }
+                }
+            } else {
+                // Init from inputs
+                ids.forEach(id => {
+                    state[id] = parseFloat(els.inputs[id].value);
+                    els.sliders[id].value = state[id];
+                });
+            }
+
+            // Calculations
+
+            const resRev = state.resVol * state.resPrice;
+            const indRev = state.indVol * state.indPrice;
+            const comRev = state.comVol * state.comPrice;
+            const othRev = state.othVol * state.othPrice;
+            const totalGasRevenue = resRev + indRev + comRev + othRev;
+
+            // 2. Cost
+            const gapFactor = 1 - (state.gapRate / 100);
+            const safeGapFactor = gapFactor <= 0 ? 0.0001 : gapFactor; // Prevent div by zero
+
+            const resGasCost = (state.resVol / safeGapFactor) * state.resBuyPrice;
+            const indGasCost = (state.indVol / safeGapFactor) * state.indBuyPrice;
+            const comGasCost = (state.comVol / safeGapFactor) * state.comBuyPrice;
+            const othGasCost = (state.othVol / safeGapFactor) * state.othBuyPrice;
+
+            const totalGasCost = resGasCost + indGasCost + comGasCost + othGasCost;
+
+            // 3. Profit
+            const gasGrossProfit = totalGasRevenue - totalGasCost;
+            const installGrossProfit = state.instRes + state.instNonRes;
+            const otherBizGrossProfit = state.instOth;
+
+            const totalGrossProfit = gasGrossProfit + installGrossProfit + otherBizGrossProfit;
+            const netProfit = totalGrossProfit - state.opex - state.finTax;
+
+            // KPI Display
+            els.kpi.revenue.textContent = totalGasRevenue.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+            const displayCost = totalGasCost + state.opex + state.finTax;
+            els.kpi.cost.textContent = displayCost.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+
+            els.kpi.profit.textContent = (netProfit > 0 ? "+" : "") + netProfit.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+            els.kpi.profit.className = `text-2xl font-bold truncate ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+
+            // Margin = Net Profit / Gas Revenue (Approximation)
+            const margin = totalGasRevenue > 0 ? (netProfit / totalGasRevenue) * 100 : 0;
+            els.kpi.margin.textContent = margin.toFixed(2) + '%';
+            els.kpi.margin.className = `text-2xl font-bold truncate ${margin >= 0 ? 'text-amber-500' : 'text-slate-400'}`;
+
+            // 5. Chart
+            updateChart(totalGasRevenue, totalGasCost, netProfit, totalGasCost, state.opex, state.finTax, installGrossProfit, otherBizGrossProfit);
+        }
+
+        function updateChart(currentRev, currentCost, currentProfit, currentGasCost, currentOpEx, currentFinTax, currentInstallGP, currentOtherBizGP) {
+            const ctx = document.getElementById('breakevenChart').getContext('2d');
+
+            const points = 11;
+            const labels = [];
+            const gasGPData = [];
+            const installGPData = [];
+            const otherBizGPData = [];
+            const totalGPData = []; // New: Total Gross Profit
+            const fixedCostData = []; // Combined OpEx + FinTax
+            const profitData = [];
+            const volData = [];
+
+            const baseTotalVol = state.resVol + state.indVol + state.comVol + state.othVol;
+
+            // Weighted Average Unit Economics
+            const avgPrice = baseTotalVol > 0 ? (currentRev / baseTotalVol) : 0;
+            const avgGasCost = baseTotalVol > 0 ? (currentGasCost / baseTotalVol) : 0;
+
+            const totalFixedCost = currentOpEx + currentFinTax;
+
+            for (let i = 0; i < points; i++) {
+                const pct = i * 20;
+                labels.push(pct + '%');
+                const scale = pct / 100;
+
+                const sRev = currentRev * scale;
+                const sGasCost = currentGasCost * scale;
+                const sVol = baseTotalVol * scale;
+
+                const sGasGP = sRev - sGasCost;
+                const sInstallGP = currentInstallGP; // Fixed
+                const sOtherBizGP = currentOtherBizGP; // Fixed
+                const sTotalGP = sGasGP + sInstallGP + sOtherBizGP; // Total GP
+                const sNetProfit = sTotalGP - totalFixedCost;
+
+                gasGPData.push(sGasGP);
+                installGPData.push(sInstallGP);
+                otherBizGPData.push(sOtherBizGP);
+                totalGPData.push(sTotalGP);
+                fixedCostData.push(totalFixedCost);
+                profitData.push(sNetProfit);
+                volData.push(sVol);
+            }
+
+            // Breakeven Analysis
+            const unitMargin = avgPrice - avgGasCost;
+            const netFixedCost = totalFixedCost - currentInstallGP - currentOtherBizGP;
+
+            let beText = "";
+
+            if (unitMargin <= 0) {
+                beText = "当前天然气业务倒挂（售价 < 成本），依靠销量无法覆盖运营成本。";
+            } else {
+                if (netFixedCost <= 0) {
+                    beText = "安装及其他业务毛利已覆盖综合费用，天然气业务只要不亏损即整体盈利。";
+                } else {
+                    const beVol = netFixedCost / unitMargin;
+                    const bePct = baseTotalVol > 0 ? (beVol / baseTotalVol) * 100 : 0;
+
+                    beText = `盈亏平衡销量需达到 <strong>${Math.round(beVol).toLocaleString()}</strong> 万方 (当前销量的 ${Math.round(bePct)}%)。`;
+                    if (currentProfit < 0) {
+                        beText += ` 还需要增加 ${(beVol - baseTotalVol).toLocaleString()} 万方销量才能保本。`;
+                    } else {
+                        beText += ` 当前处于安全盈利区。`;
+                    }
+                }
+            }
+            els.analysis.innerHTML = beText;
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '总销气量',
+                            data: volData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [2, 2],
+                            tension: 0,
+                            pointRadius: 0,
+                            fill: false,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: '总毛利润', // New
+                            data: totalGPData,
+                            borderColor: '#dc2626', // Red 600
+                            backgroundColor: 'transparent',
+                            borderWidth: 3, // Prominent
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '天然气毛利',
+                            data: gasGPData,
+                            borderColor: '#f59e0b', // Amber 500
+                            backgroundColor: 'transparent',
+                            borderWidth: 3, // Prominent
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '综合费用 (运营+财务)', // "Total Cost" equivalent
+                            data: fixedCostData,
+                            borderColor: '#334155', // Slate 700
+                            backgroundColor: 'transparent',
+                            borderWidth: 3, // Prominent
+                            tension: 0,
+                            pointRadius: 0,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '安装毛利',
+                            data: installGPData,
+                            borderColor: '#f97316', // Orange 500
+                            backgroundColor: 'transparent',
+                            borderWidth: 1.5,
+                            tension: 0,
+                            pointRadius: 0,
+                            borderDash: [4, 4],
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '其他业务毛利',
+                            data: otherBizGPData,
+                            borderColor: '#14b8a6', // Teal 500
+                            backgroundColor: 'transparent',
+                            borderWidth: 1.5,
+                            tension: 0,
+                            pointRadius: 0,
+                            borderDash: [4, 4],
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '净利润',
+                            data: profitData,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 12 } } },
+                        tooltip: {
+                            bodyFont: { size: 14 },
+                            titleFont: { size: 14 },
+                            callbacks: {
+                                title: (context) => `销量规模: ${context[0].label}`,
+                                label: (context) => {
+                                    if (context.dataset.yAxisID === 'y1') {
+                                        return `${context.dataset.label}: ${Math.round(context.raw).toLocaleString()} 万方`;
+                                    }
+                                    return `${context.dataset.label}: ${Math.round(context.raw).toLocaleString()} 万元`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: false,
+                            title: { display: true, text: '金额 (万元)', font: { size: 12 } },
+                            ticks: { font: { size: 12 } }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: '销量 (万方)', font: { size: 12 } },
+                            ticks: { font: { size: 12 }, color: '#3b82f6' }
+                        },
+                        x: {
+                            title: { display: false },
+                            ticks: { font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Save / Load ---
+        function saveConfig() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "gas_sim_config.json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function loadConfig(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const loadedState = JSON.parse(e.target.result);
+                    if (loadedState.resVol !== undefined) {
+                        Object.assign(state, loadedState);
+                        ids.forEach(id => {
+                            if (state[id] !== undefined) {
+                                if (els.inputs[id]) els.inputs[id].value = state[id];
+                                if (els.sliders[id]) els.sliders[id].value = state[id];
+                            }
+                        });
+                        updateCalculation();
+                        alert('配置导入成功！');
+                    } else {
+                        alert('文件格式不正确');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('无法解析文件');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // --- Init ---
+        ids.forEach(id => {
+            els.sliders[id].addEventListener('input', updateCalculation);
+            els.inputs[id].addEventListener('input', updateCalculation);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => updateCalculation());
+
+    </script>
+</body>
+
+</html>
